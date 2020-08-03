@@ -1,0 +1,208 @@
+---
+title: "STAT154_HW2"
+author: "Minju Jo"
+output: pdf_document
+---
+###PROBLEM 6###
+
+```{r}
+nba<-read.csv("C:/Users/MINJU/Downloads/nba-teams-2019.csv")
+head(nba)
+```
+
+```{r}
+attach(nba)
+team<-nba[,'TEAM']
+str(nba)
+```
+
+```{r}
+nba<-nba[,c('W','L','PTS','FGM','X3PM','REB','AST','TOV','STL','BLK')]
+str(nba)
+```
+# we need only 10 columns
+
+##6.1 [Calculation of primary PCA outputs]##
+
+#A#
+Obtain the loadings and store them in a matrix, include row and column names.
+Display the first five loadings.
+
+```{r}
+nba<-scale(nba)
+summary(nba)
+```
+#work with standardized data: variables with mean = 0, and sample variance = 1
+
+```{r}
+corNba<-(t(nba)%*%nba)/29
+corNba
+```
+
+```{r}
+loading<-eigen(corNba)$vectors[,1:5]
+colnames(loading)<-c('l1','l2','l3','l4','l5')
+loading
+```
+#this is first five loadings
+
+#B#
+Obtain the principal components and store them in a matrix, include row and column
+names. Display the first five PCs.
+
+```{r}
+pc1<-nba%*%loading[,'l1']
+rownames(pc1)<-team
+pc1
+```
+
+```{r}
+pc2<-nba%*%loading[,'l2']
+rownames(pc2)<-team
+pc2
+```
+
+```{r}
+pc3<-nba%*%loading[,'l3']
+rownames(pc3)<-team
+pc3
+```
+
+```{r}
+pc4<-nba%*%loading[,'l4']
+rownames(pc4)<-team
+pc4
+```
+
+```{r}
+pc5<-nba%*%loading[,'l5']
+rownames(pc5)<-team
+pc5
+```
+#these are 5 pcs
+
+#C#
+Obtain the eigenvalues and store them in a vector. Display the entire vector, and
+compute their sum.
+```{r}
+eigenval<-eigen(corNba)$values
+eigenval
+```
+
+```{r}
+sumval<-sum(eigenval)
+sumval
+```
+#this is sum of the eigen values
+
+
+##6.2 [Eigenvalues]##
+
+#A#
+Make a summary table of the eigenvalues: eigenvalue in the first column; proportion
+or percentage in the second column; and cumulative percentage in the third column.
+Comment on the table: for instance, how do you interpret each eigenvalue?
+
+```{r}
+percentage=c()
+for (i in 1:length(eigenval)) percentage=c(percentage,(eigenval[i]/sumval)*100)
+percentage
+```
+
+```{r}
+cumulative.percentage=c(percentage[1])
+for (i in 2:length(eigenval)) cumulative.percentage=c(cumulative.percentage,cumulative.percentage[i-1]+(eigenval[i]/sumval)*100)
+cumulative.percentage
+```
+
+```{r}
+eigenvalSummary<-data.frame(eigenval, percentage, cumulative.percentage)
+rownames(eigenvalSummary)<-paste("eigenval",1:10)
+eigenvalSummary
+```
+#first eigenvalue is the largest and the last one is the smallest
+#It is over 90% only with 5 eigenvalues, which can represent almost every data
+
+#B#
+Create a scree-plot (with axis labels) of the eigenvalues. What do you see? How do
+you read/interpret this chart?
+
+
+```{r}
+plot(percentage,xlab="eigenvalues")
+```
+#the first eigenvalue explains almost half of the data
+#from 6th eigenvalue, it looks less than 5%, which means not that critical
+
+
+#C#
+How do you explain the value of the last eigenvalue? (what¡¯s going on here?)
+```{r}
+eigenval[10]
+```
+#it is almost 0
+
+```{r}
+percentage[10]
+```
+#It does not represent the data well
+
+#D#
+Based on the different criteria discussed in lecture, how many dimensions (i.e. number
+of PCs), would you retain/use? Explain
+```{r}
+cumulative.percentage
+```
+I'll keep only five eigenvalues, which is same as 5 dimensions.
+Because they already explain 90% of the data which is enough.(By the elbow in scree plot)
+
+
+##6.3##
+
+#A#
+Compute a matrix of correlations between the variables and the PCs. Provide interpretations
+for the first four principal components.
+```{r}
+cor(pc1,nba)
+cor(pc2,nba)
+cor(pc3,nba)
+cor(pc4,nba)
+```
+From first to third PCs, there is quite high correlation btw the variables and the PCs. However, for the 4th PC, it has less correlation than former ones.
+
+#B#
+Plot a Circle of Correlations graph using the first two dimensions (associated to the
+first 2 PCs). And provide an interpretation of this graph. Again, recall that you cannot use any PCA-packages.
+```{r}
+a<-seq(0,2*pi,length.out=100)
+plot(cos(a),sin(a),type='l',xlab='dimension1',ylab='dimension2')
+arrows(0,0,cor(pc1,nba),cor(pc2,nba),length=0.1,angle=10)
+abline(h=0,v=0)
+text(cor(pc1,nba),cor(pc2,nba),labels=c('W','L','PTS','FGM','X3PM','REB','AST','TOV','STL','BLK'))
+```
+
+
+##6.4##
+
+#A#
+Create a scatter plot of the individuals (i.e. the teams) on the 1st and 2nd PC. Comment on general patterns, as well as on particular patterns.
+```{r}
+plot(x=pc1,y=pc2, main="PC1 vs PC2", xlab = "PC1", ylab = "PC2")
+abline(h = 0, v = 0)
+text(pc1,pc2,labels=team)
+```
+
+#B#
+
+```{r}
+plot(x=pc3,y=pc4, main="PC3 vs PC4", xlab = "PC3", ylab = "PC4")
+abline(h = 0, v = 0)
+text(pc3,pc4, labels = team)
+```
+
+#C#
+MIN : negative value in both pc1, pc2 axis. it woudl have some loses
+GSW vs NYK : big gap in pc1 axis, almost same in pc2 axis.
+gsw won a lot against nyk and got many points.
+PHO vs DET : big gap in pc2 axis, almost same in pc1 axis.
+DET made a lot of 3 points in game and so there were not many turnovers than PHO.

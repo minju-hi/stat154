@@ -1,0 +1,332 @@
+---
+title: "STAT154_HW5"
+author: "Minju Jo"
+output: pdf_document
+---
+
+###PROBLEM 3###
+##3A##
+
+```{r}
+nba<-read.csv("C:/Users/MINJU/Downloads/nba-teams-2019.csv")
+head(nba)
+```
+
+```{r}
+m1<-lm(W~PTS,data=nba)
+summary(m1)
+```
+
+```{r}
+nba_predict1<-predict(m1, newdata=nba[c("W","PTS")])
+mse1<-mean((nba$W-nba_predict1)**2)
+mse1
+```
+#Model 1(1 predictor variable) : MSE = 78.80752
+
+```{r}
+nba2<-nba[,c("W",'PTS','FGM','X3PM','FTM','AST')]
+m2<-lm(W~.,data=nba2)
+summary(m2)
+```
+
+```{r}
+nba_predict2<-predict(m2, newdata=nba2)
+mse2<-mean((nba2$W-nba_predict2)**2)
+mse2
+```
+#Model 2(5 predictor variables) : MSE = 65.67837
+
+```{r}
+nba3<-nba[,c("W",'PTS','FGM','X3PM','FTM','AST',"OREB","DREB","TOV","STL","BLK")]
+m3<-lm(W~.,data=nba3)
+summary(m3)
+```
+
+```{r}
+nba_predict3<-predict(m3, newdata=nba3)
+mse3<-mean((nba3$W-nba_predict3)**2)
+mse3
+```
+#Model 3(10 predictor variables) : MSE = 35.01552
+
+```{r}
+mse1
+mse2
+mse3
+```
+#model with 10 predictors has lowest MSE.
+#It's because MSE is calculated using same training set, so it's more overfit.
+
+
+##3B##
+
+```{r}
+index=sample(1:nrow(nba),size=nrow(nba))
+split_idx=split(index,1:10)
+split_idx
+```
+#indexes were split into 10 groups
+
+```{r}
+nba2[split_idx[[1]],]
+```
+#For example, in first case it would be like this one(Model2)
+
+##3C##
+```{r}
+nba1<-nba[,c("W","PTS")]
+head(nba1)
+```
+
+#Model1
+```{r}
+new_mse1=c()
+
+for (i in 1:10){
+  test=nba1[split_idx[[i]],]
+  train=nba1[-split_idx[[i]],]
+  
+  new_m1=lm(W~.,data=train)
+  new_pred=predict(new_m1,test)
+  new_mse1=c(new_mse1,mean((test$W-new_pred)^2))
+}
+
+new_mse1
+```
+
+```{r}
+avg_new_mse1=mean(new_mse1)
+avg_new_mse1
+```
+
+#Model2
+```{r}
+new_mse2=c()
+
+for (i in 1:10){
+  test=nba2[split_idx[[i]],]
+  train=nba2[-split_idx[[i]],]
+  
+  new_m2=lm(W~.,data=train)
+  new_pred=predict(new_m2,test)
+  new_mse2=c(new_mse2,mean((test$W-new_pred)^2))
+}
+
+new_mse2
+```
+
+```{r}
+avg_new_mse2=mean(new_mse2)
+avg_new_mse2
+```
+
+#Model3
+```{r}
+new_mse3=c()
+
+for (i in 1:10){
+  test=nba3[split_idx[[i]],]
+  train=nba3[-split_idx[[i]],]
+  
+  new_m3=lm(W~.,data=train)
+  new_pred=predict(new_m3,test)
+  new_mse3=c(new_mse3,mean((test$W-new_pred)^2))
+}
+
+new_mse3
+```
+
+```{r}
+avg_new_mse3=mean(new_mse3)
+avg_new_mse3
+```
+
+```{r}
+avg_new_mse1
+avg_new_mse2
+avg_new_mse3
+```
+#MSEs of three models
+
+##3D##
+- Model 1 has the best cross validation MSE.
+- The ordering of the cross validation MSEs don't match the ordering of the in-sample MSEs in part a.
+- It is because in part a, we calculated mse by using train data, which would be overfitted.
+- But in part c, we used test set, so the property of overfitting would increase the mse of each models.
+
+
+###PROBLEM 4###
+
+##4A##
+-I think quadratic model would have the best training error, as it has more dimensions.
+-I think linear model would have the best test error, as it is less overfitted.
+
+##4B##
+-Yes, if less training sets are selected, it is trained less but it is also less overfitted to the given data set. If more training sets are selected, it would fit good to the data set, but can be overfitted.
+
+##4C##
+
+#i# split data 70-30
+```{r}
+data_x<-runif(20,0,1)
+data_x2<-data_x**2
+data_y<-data_x+rnorm(20,0,1)
+data_y
+```
+
+```{r}
+dataxy<-data.frame(data_x,data_x2,data_y)
+dataxy
+```
+
+```{r}
+index2=sample(1:20,size=20)
+train_idx=index2[1:14]
+test_idx=index2[15:20]
+```
+
+```{r}
+data_train=dataxy[train_idx,]
+data_test=dataxy[test_idx,]
+```
+
+#ii# fit linear/quadratic models to training set & get training MSEs
+```{r}
+linear<-lm(data_y~data_x, data=data_train)
+summary(linear)
+```
+
+```{r}
+linear_pred<-predict(linear, data=data_train)
+linear_mse<-mean((data_train$data_y-linear_pred)**2)
+linear_mse
+```
+
+```{r}
+quad<-lm(data_y~data_x+data_x2, data= data_train)
+summary(quad)
+```
+
+```{r}
+quad_pred<-predict(quad, data=data_train)
+quad_mse<-mean((data_train$data_y-quad_pred)**2)
+quad_mse
+```
+
+#iii# compute test mse
+```{r}
+linear_pred2<-predict(linear, newdata=data_test)
+linear_mse2<-mean((data_test$data_y-linear_pred2)**2)
+linear_mse2
+```
+
+```{r}
+quad_pred2<-predict(quad, newdata=data_test)
+quad_mse2<-mean((data_test$data_y-quad_pred2)**2)
+quad_mse2
+```
+
+#50-50
+```{r}
+index3=sample(1:20,size=20)
+train_idx2=index3[1:10]
+test_idx2=index3[11:20]
+
+data_train=dataxy[train_idx2,]
+data_test=dataxy[test_idx2,]
+
+linear3<-lm(data_y~data_x, data=data_train)
+quad3<-lm(data_y~data_x+data_x2, data= data_train)
+
+linear_pred3<-predict(linear3, data=data_train)
+linear_mse3<-mean((data_train$data_y-linear_pred3)**2)
+
+quad_pred3<-predict(quad3, data=data_train)
+quad_mse3<-mean((data_train$data_y-quad_pred3)**2)
+
+linear_pred4<-predict(linear3, newdata=data_test)
+linear_mse4<-mean((data_test$data_y-linear_pred4)**2)
+
+quad_pred4<-predict(quad3, newdata=data_test)
+quad_mse4<-mean((data_test$data_y-quad_pred4)**2)
+
+linear_mse3
+linear_mse4
+quad_mse3
+quad_mse4
+```
+
+#30-70
+```{r}
+index4=sample(1:20,size=20)
+train_idx3=index4[1:14]
+test_idx3=index4[15:20]
+
+data_train=dataxy[train_idx3,]
+data_test=dataxy[test_idx3,]
+
+linear5<-lm(data_y~data_x, data=data_train)
+quad5<-lm(data_y~data_x+data_x2, data= data_train)
+
+linear_pred5<-predict(linear5, data=data_train)
+linear_mse5<-mean((data_train$data_y-linear_pred5)**2)
+
+quad_pred5<-predict(quad5, data=data_train)
+quad_mse5<-mean((data_train$data_y-quad_pred5)**2)
+
+linear_pred6<-predict(linear5, newdata=data_test)
+linear_mse6<-mean((data_test$data_y-linear_pred6)**2)
+
+quad_pred6<-predict(quad5, newdata=data_test)
+quad_mse6<-mean((data_test$data_y-quad_pred6)**2)
+
+linear_mse5
+linear_mse6
+quad_mse5
+quad_mse6
+```
+
+#70-30
+```{r}
+par(mfrow = c(3, 4))
+hist(linear_pred)
+hist(linear_pred2)
+hist(quad_pred)
+hist(quad_pred2)
+hist(linear_pred3)
+hist(linear_pred4)
+hist(quad_pred3)
+hist(quad_pred4)
+hist(linear_pred5)
+hist(linear_pred6)
+hist(quad_pred5)
+hist(quad_pred6)
+```
+
+```{r}
+linear_mse
+linear_mse2
+quad_mse
+quad_mse2
+```
+
+```{r}
+linear_mse3
+linear_mse4
+quad_mse3
+quad_mse4
+```
+
+```{r}
+linear_mse5
+linear_mse6
+quad_mse5
+quad_mse6
+```
+#For every cases, linear models have less test errors, and quadratic models have less train errors, because of the number of parameters.
+#When there were 50-50 split, it was spread widely
+#When there were 30-70 split, it was relatively concentrated
+
+
+###PROBLEM 5###

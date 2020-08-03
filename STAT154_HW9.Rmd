@@ -1,0 +1,134 @@
+---
+title: "STAT154 HW9"
+author: "Minju Jo"
+output: pdf_document
+---
+
+###PROBLEM 6###
+
+```{r}
+library("ISLR")
+data=Carseats
+```
+
+```{r}
+head(data)
+```
+
+##a##
+```{r}
+data$High <- as.numeric(data$Sales>=9)
+head(data)
+```
+create a variable "high"(standard = "sales">=9)
+
+```{r}
+data = subset(data, select=-c(ShelveLoc,Urban,US,Sales))
+head(data)
+```
+remove all non-quantative variables + Sales
+
+```{r}
+data = scale(data)
+```
+
+```{r}
+summary(data)
+```
+data was scaled and centered
+
+```{r}
+ndata = nrow(data)
+splitIdx = sample(1:ndata, size = nrow(data)*0.7)
+train <- as.data.frame(data[splitIdx,])
+test <- as.data.frame(data[-splitIdx,])
+```
+
+```{r}
+dim(train)
+dim(test)
+```
+dataset was split into training/testing set
+
+
+##b##
+```{r}
+library(rpart)
+```
+
+```{r}
+rpTree <- rpart(High~., data=train, method="class", maxdepth=6)
+plot(rpTree)
+text(rpTree)
+```
+classification tree
+
+```{r}
+err<-mean(predict(rpTree, test, type="class") != test$High)
+err
+```
+evaluate the tree on the train set
+
+
+##c##
+```{r}
+da_woHigh <- as.data.frame(data[,-8])
+head(da_woHigh)
+```
+data without high
+
+```{r}
+pca <- prcomp(da_woHigh)
+pca
+```
+
+```{r}
+pca_data<-as.data.frame(predict(pca))
+pca_data$High <- data[,"High"]
+pca_train <- as.data.frame(pca_data[splitIdx,])
+pca_test <- as.data.frame(pca_data[-splitIdx,])
+```
+
+```{r}
+pca_rpTree <- rpart(High~., data=pca_train, method="class", maxdepth=6)
+plot(pca_rpTree)
+text(pca_rpTree)
+```
+
+```{r}
+pca_err<-mean(predict(pca_rpTree, pca_test, type="class") != pca_test$High)
+pca_err
+```
+error rate
+
+
+##d##
+```{r}
+pca_train3 <- pca_train[,c(1:3,8)]
+pca_test3 <- pca_test[,c(1:3,8)]
+```
+
+```{r}
+head(pca_train3)
+head(pca_test3)
+```
+
+```{r}
+pca_rpTree3 <- rpart(High~., data=pca_train3, method="class", maxdepth=6)
+plot(pca_rpTree3)
+text(pca_rpTree3)
+```
+
+```{r}
+pca_err3<-mean(predict(pca_rpTree3, pca_test3, type="class") != pca_test3$High)
+pca_err3
+```
+
+
+##e##
+```{r}
+err
+pca_err
+pca_err3
+```
+pca with tree-based methods can reduce err than just using tree-based methods. But we should consider PCs and select how many PCs to use. Because it can decrease or increase misclassification rate.

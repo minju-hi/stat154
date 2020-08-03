@@ -1,0 +1,304 @@
+---
+title: "STAT154_HW3"
+author: "Minju Jo"
+output: pdf_document
+---
+
+###PROBLEM 4###
+##A##
+
+```{r}
+X=matrix(c(1,1,-1,-1,1,1,-1,-0.9),4,2)
+X
+X2=matrix(c(1,1,-1,-1,1,-1,1,-1),4,2)
+X2
+```
+
+```{r}
+cor(X[,1],X[,2])
+```
+#sample correlation of two predictors in X is almost 1
+
+```{r}
+cor(X2[,1],X2[,2])
+```
+#sample correlation of two predictors in X_tilde is 0
+
+##B##
+```{r}
+y=X%*%c(3,1)
+y
+```
+
+```{r}
+set.seed(4)
+n1<-scale(rnorm(4))
+```
+
+```{r}
+mean(n1)
+sd(n1)
+```
+#iid standard Gaussian noise
+
+```{r}
+y=y+n1
+y
+```
+#we generated a response variable Y
+
+```{r}
+qr_ols<-function(X,y){
+  QR<-qr(X)
+  Q<-qr.Q(QR)
+  R<-qr.R(QR)
+  b<-as.vector(backsolve(R,t(Q) %*% y))
+  names(b)<-colnames(X)
+  return(b)
+}
+```
+#ols using QR decomposition(return : beta(coefficient))
+
+```{r}
+ols<-function(X,y){
+  beta<-qr_ols(X,y)
+  y_hat<-as.vector(X%*%beta)
+  e<-y-y_hat
+  return(beta[1])
+}
+```
+#function of ols
+
+#like above, repeat this 1000times
+```{r}
+beta_list_1=c()
+for (i in 1:1000){
+  y_repeat=X%*%c(3,1)
+  n_repeat<-scale(rnorm(4))
+  y_repeat=y_repeat+n_repeat
+  beta_list_1=c(beta_list_1,ols(X,y_repeat))
+}
+
+beta_list_1[1:20]
+```
+
+#These are only 20 coefficient corresponding to the first predictor.
+#(There actually are 1000)
+
+```{r}
+cat("Mean of 1000 coefficient corresponding to the first predictor : ", mean(beta_list_1))
+cat("\nVariance of 1000 coefficient corresponding to the first predictor : ", var(beta_list_1))
+```
+
+```{r}
+beta_list_2=c()
+for (i in 1:1000){
+  y_repeat2=X2%*%c(3,1)
+  n_repeat2<-scale(rnorm(4))
+  y_repeat2=y_repeat2+n_repeat2
+  beta_list_2=c(beta_list_2,ols(X2,y_repeat2))
+}
+
+beta_list_2[1:20]
+```
+#Same procedure but just using X_tilde instead of X
+
+```{r}
+cat("Mean of 1000 coefficient corresponding to the first predictor : ", mean(beta_list_2))
+cat("\nVariance of 1000 coefficient corresponding to the first predictor : ", var(beta_list_2))
+```
+
+```{r}
+hist(beta_list_1)
+```
+
+```{r}
+hist(beta_list_2,xlim=c(-15,20))
+```
+#These are histograms of each efficients
+#I intentionally made xlim same to compare.
+
+##C##
+```{r}
+mean(beta_list_1)
+mean(beta_list_2)
+```
+#both means are close to 3.
+#because we used X*vector(3,1), and 3 corresponds to the first predictor.
+
+##D##
+```{r}
+var(beta_list_1)
+var(beta_list_2)
+```
+#variance of X's is extremely larger than that of X_tilde's.
+#This is because X has a big collinearity(correlation is almost 0),
+#whereas X_tilde has no linear btw predictors.
+#We can see that correlation of preictors make hard to get the right coefficient
+#which means big variance.
+
+
+###PROBLEM 5###
+##A##
+
+```{r}
+f<-function(x){
+  return(x*x)
+}
+
+df<-function(x){
+  return(2*x)
+}
+
+gd<-function(x,alpha,step){
+  for (i in 1:step){
+    x<-x-alpha*df(x)
+  }
+  return(x)
+}
+```
+
+```{r}
+x_init<-rnorm(n=1)
+s1=gd(x_init,2,30)
+s2=gd(x_init,1,30)
+s3=gd(x_init,0.5,30)
+```
+
+```{r}
+x_init
+s1
+s2
+s3
+```
+#when step was too large(size=2), it got too large value which diverges.
+#when step was too small(size=0.5), it was too slow to get to the goal state.
+#when step was enough size, it just get to the goal state(x_init).
+
+##B##
+```{r}
+A=matrix(c(2,0,0,3),2,2)
+df2<-function(x){
+  return(2*A%*%x)
+}
+
+gd2<-function(x,alpha,step){
+  for (i in 1:step){
+    x<-x-alpha*df2(x)
+  }
+  return(x)
+}
+```
+
+```{r}
+x_init2=rnorm(n=2)
+step2=sample(x=1:4,size=2)
+s4=gd2(x_init2,1/step2[1],30)
+s5=gd2(x_init2,1/step2[2],30)
+```
+
+```{r}
+step2[1]
+step2[2]
+s4
+s5
+```
+
+```{r}
+x_init2
+```
+#when step size was 1/4, it was too small to get the goal state as above.
+#when step size was 1, it was too big so the end result diverged.
+#when it was R->R, 1 was enogh but when it was R^2->R, 1 was too big to do gradient descent.
+
+
+##C##
+```{r}
+B=matrix(c(2,1,1,2),2,2)
+df3<-function(x){
+  return(2*B%*%x)
+}
+
+gd3<-function(x,alpha,step){
+  for (i in 1:step){
+    x<-x-alpha*df3(x)
+  }
+  return(x)
+}
+```
+
+```{r}
+x_init3=rnorm(n=2)
+```
+
+```{r}
+s6=gd3(x_init3,0.1,30)
+s7=gd3(x_init3,0.3,30)
+s8=gd3(x_init3,0.5,30)
+s9=gd3(x_init3,0.7,30)
+s10=gd3(x_init3,0.9,30)
+```
+
+```{r}
+x_init3
+s6
+s7
+s8
+s9
+s10
+```
+#when step size was 0.7, it worked the best.
+#Below 0.7 also had end results very close to the initial value.
+#However, above 0.7 had end results which diverge.
+
+
+##D##
+
+```{r}
+evd<-eigen(B)
+evd
+```
+
+```{r}
+gd3(x_init3,1/evd$values[1],30)
+```
+
+```{r}
+x_init3
+```
+#when we used the inverse eigenvalue as the stepsize,
+#it made the end result exactly same as the initial value.
+
+```{r}
+1/evd$values[1]
+```
+#Also, it is very close to 0.7, which was the cutoff point 
+#in the step-sizes that worked and those that didnt from (C).
+
+
+##E##
+```{r}
+gd4<-function(x,alpha){
+  i=0
+  while(TRUE){
+    i=i+1
+    x1<-x-alpha*df(x)
+    if(abs(x1-x)<0.001) break
+    x<-x1
+  }
+  return(c(x1,i))
+}
+```
+
+```{r}
+x4<-rnorm(n=1)
+x4
+```
+
+```{r}
+gd4(x4,0.5)
+gd4(x4,0.7)
+gd4(x4,0.9)
+```
+#as alpha gets bigger, step size got bigger(2->9->33)
+#when alpha>=1, then the value doesn't converge

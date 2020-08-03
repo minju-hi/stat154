@@ -1,0 +1,355 @@
+---
+title: "STAT154_HW8"
+author: "Minju Jo"
+output: pdf_document
+---
+
+###STAT154 HW8###
+
+
+##1##
+
+```{r}
+x1<-c(1,1,0,5,6,4)
+x2<-c(4,3,4,1,2,0)
+df<-cbind(x1,x2)
+df
+```
+
+#a#
+```{r}
+plot(df)
+```
+
+#b#
+```{r}
+set.seed(420)
+label = sample(c(1,2),6,replace=T)
+label_df=data.frame(cbind(df,label))
+label_df
+```
+there are two labels - ,1,2
+
+#c#
+```{r}
+label_1 = df[label==1,]
+label_2 = df[label==2,]
+label_1
+label_2
+```
+
+```{r}
+cent_1 = apply(label_1,2,mean)
+cent_2 = apply(label_2,2,mean)
+centroids<-rbind(cent_1,cent_2)
+centroids
+```
+
+randomly picked the each centroids
+
+#d#
+
+```{r}
+e_dist<-function(x,y){
+  return(sqrt(sum((x-y)^2)))
+}
+```
+
+```{r}
+new_label=apply(df,1,function(obs){
+  distances<-apply(centroids,1,function(centroid){
+    e_dist(obs,centroid)
+  })
+  which.min(distances)
+})
+
+new_label
+```
+this is the new cluster labels for each observation
+
+```{r}
+label==new_label
+```
+#not same
+
+#e#
+```{r}
+repeat{
+  prior<- new_label
+  
+  label_1 = df[prior==1,]
+  label_2 = df[prior==2,]
+  
+  cent_1 = apply(label_1,2,mean)
+  cent_2 = apply(label_2,2,mean)
+  centroids<-rbind(cent_1,cent_2)
+  
+  new_label=apply(df,1,function(obs){
+    distances<-apply(centroids,1,function(centroid){
+      e_dist(obs,centroid)
+    })
+    which.min(distances)
+  })
+  print(new_label)
+  if(all(new_label==prior)){
+    break
+  }
+}
+```
+repeat until the answers obtained stop changing
+
+#f#
+```{r}
+df=data.frame(cbind(data,new_label))
+df
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+ggplot(data=df, mapping=aes(x=x1, y=x2, color=new_label))+geom_point(size=3)
+```
+
+
+##2##
+
+```{r}
+dt1<-read.csv("data1.csv")
+dt1
+```
+
+#a#
+```{r}
+dt1<-dt1[,c("x","y")]
+plot(dt1)
+```
+
+#b#
+```{r}
+k1<-kmeans(dt1,3)
+k2<-kmeans(dt1,3)
+k3<-kmeans(dt1,3)
+k4<-kmeans(dt1,3)
+k5<-kmeans(dt1,3)
+k6<-kmeans(dt1,3)
+```
+
+#c#
+```{r}
+k1=data.frame(cbind(dt1,cluster=as.character(k1$cluster)))
+k2=data.frame(cbind(dt1,cluster=as.character(k2$cluster)))
+k3=data.frame(cbind(dt1,cluster=as.character(k3$cluster)))
+k4=data.frame(cbind(dt1,cluster=as.character(k4$cluster)))
+k5=data.frame(cbind(dt1,cluster=as.character(k5$cluster)))
+k6=data.frame(cbind(dt1,cluster=as.character(k6$cluster)))
+```
+
+```{r}
+g1=ggplot(data=k1, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+g2=ggplot(data=k2, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+g3=ggplot(data=k3, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+g4=ggplot(data=k4, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+g5=ggplot(data=k5, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+g6=ggplot(data=k6, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+```
+
+```{r}
+library(gridExtra)
+```
+
+```{r}
+grid.arrange(g1,g2,g3,g4,g5,g6, ncol=3)
+```
+5 are clustered well(just different levels).
+1 is not clustered well, which means clustering just can group breifly not accurately,
+
+
+##3##
+```{r}
+dt2<-read.csv("data2.csv")
+dt2
+```
+
+#a#
+```{r}
+dt2_dist<-dist(dt2[,c("x","y")],diag=T,method="euclidian")
+dt2_dist
+```
+
+#b#
+```{r}
+h_single<- hclust(dt2_dist,method="single")
+h_single
+```
+
+```{r}
+plot(h_single)
+```
+(a,b), (c,d), (e,f), (g,h) each fusions at 2.
+(a,b,c,d). (e,f,g,h) each fusions at 3.
+all fusions at 4.
+
+#c#
+```{r}
+h_comp<- hclust(dt2_dist,method="complete")
+h_comp
+```
+
+```{r}
+plot(h_comp)
+```
+(a,b), (c,d), (e,f), (g,h) each fusions at 2.
+(a,b,e,f), (c,d,g,h) each fusions at 4.5.
+all fusions at 8.
+
+
+#d#
+```{r}
+data2<- dt2[,c("x","y")]
+data2
+```
+
+```{r}
+sing_label = cutree(h_single, 2)
+clust1=data2[sing_label==1,]
+clust2=data2[sing_label==2,]
+clust1
+clust2
+```
+(b) with two clusters
+
+#e#
+```{r}
+comp_label = cutree(h_comp, 2)
+clust11=data2[comp_label==1,]
+clust22=data2[comp_label==2,]
+clust11
+clust22
+```
+(c) with two clusters
+
+#f#
+```{r}
+data_single=cbind(data2,cluster=as.character(sing_label))
+data_comp=cbind(data2,cluster=as.character(comp_label))
+```
+
+```{r}
+gg1=ggplot(data=data_single, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+gg2=ggplot(data=data_comp, mapping=aes(x=x, y=y, color=cluster))+geom_point(size=3)
+```
+
+```{r}
+grid.arrange(gg1, gg2, ncol=2)
+```
+both configurations are different. For single mothod, it considers distance btw the closest points. So, it was clustered as (a,b,c,d) and (e,f,g,h). However, for complete link, it considers distance btw the farthest pair of points. So, it was clustered as (a,b,e,f) and (c,d,g,h).
+
+
+##4##
+
+#a#
+```{r}
+library(FactoMineR)
+data(decathlon)
+dec<-decathlon[ ,1:10]
+```
+
+```{r}
+dec
+```
+
+#4.1#
+```{r}
+pca<-prcomp(dec,scale=T)
+summary(pca)
+```
+
+```{r}
+pc1<-pca$x[,1]
+pc2<-pca$x[,2]
+dec<-scale(dec)
+```
+
+```{r}
+a<-seq(0,2*pi,length.out=100)
+plot(cos(a),sin(a),type='l',xlab='pc1',ylab='pc2')
+arrows(0,0,cor(pc1,dec),cor(pc2,dec),length=0.1,angle=10)
+abline(h=0,v=0)
+text(cor(pc1,dec),cor(pc2,dec),labels=colnames(dec))
+```
+I would cluster them into variables on the left and variables on the right. Because they seems to have different sign of correlations with the original data.
+
+#4.2#
+
+#a#
+```{r}
+cor_dec <- cor(dec)
+cor_dec
+```
+
+#b#
+```{r}
+dist_dec <- 1-as.dist(cor_dec)
+dist_dec
+```
+
+#c#
+```{r}
+dec_hsing<-hclust(dist_dec, method="single")
+plot(dec_hsing)
+```
+
+#d#
+```{r}
+dec_hcomp<-hclust(dist_dec, method="complete")
+plot(dec_hcomp)
+```
+
+#e#
+```{r}
+dec_havg<-hclust(dist_dec, method="average")
+plot(dec_havg)
+```
+
+
+##5##
+
+#a#
+```{r}
+head(dec)
+```
+
+```{r}
+edist_dec <- dist(t(dec), method="euclidian")
+edist_dec
+```
+This is squared euclidean distance between the ith and the jth observations.
+
+```{r}
+dist_dec
+```
+This is 1-rij 's dist.
+
+```{r}
+edist_dec/dist_dec
+```
+They don't have that similar values. So we can say this proportionality approximation doesn't hold.
+
+#b#
+```{r}
+dec_hsing2<-hclust(edist_dec, method="single")
+plot(dec_hsing2)
+```
+
+```{r}
+dec_hcomp2<-hclust(edist_dec, method="complete")
+plot(dec_hcomp2)
+```
+
+```{r}
+dec_havg2<-hclust(edist_dec, method="average")
+plot(dec_havg2)
+```
+

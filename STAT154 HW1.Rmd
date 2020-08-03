@@ -1,0 +1,267 @@
+---
+title: "STAT154 HW1"
+author: "Minju Jo"
+output: pdf_document
+---
+
+###PROBLEM 5###
+##5A##
+```{r}
+inner_prod<-function(a,b){
+  if(length(a)!=length(b)){
+    stop("Length of both vectors should be same!")
+  }
+  else{
+    total=0
+    for(i in 1:length(a)){
+      total=total+a[i]*b[i]
+    }
+    return(total)
+  }
+}
+```
+
+```{r}
+y=c(1,1,1,1,1)
+z=c(2,4,6,8,10)
+inner_prod(y,y)
+inner_prod(z,z)
+inner_prod(y,z)
+```
+
+##5B##
+```{r}
+vnorm<-function(a){
+  return(sqrt(inner_prod(a,a)))
+}
+```
+
+```{r}
+b<-c(1,2,3,4,5)
+vnorm(b)
+```
+
+##5C##
+```{r}
+unit_norm<-function(x){
+  return(x/vnorm(x))
+}
+```
+
+```{r}
+x<-c(1,2,3)
+y<-c(1,1,1)
+z<-c(1,0,0)
+```
+
+```{r}
+unit_norm(x)
+unit_norm(y)
+unit_norm(z)
+```
+
+##5D##
+```{r}
+vector_proj<-function(a,b){
+  return((inner_prod(a,b)/inner_prod(b,b))*b)
+}
+```
+
+```{r}
+vector_proj(x,y)
+```
+
+##5E##
+```{r}
+scalar_proj<-function(a,b){
+  return(inner_prod(a,b)/vnorm(b))
+}
+```
+
+```{r}
+scalar_proj(x,y)
+```
+
+
+###PROBLEM 6###
+##6A##
+```{r}
+iter=1
+mat<-matrix(c(5,-4,3,-14,4,6,11,-4,-3),3,3)
+w_old<-c(1,1,1)
+s=abs(max(mat%*%w_old))
+while(TRUE){
+  w_new<-(mat%*%w_old)/s
+  s_diff=abs(abs(max(mat%*%w_new))-s)
+  s=abs(max(mat%*%w_new))
+    
+  print(paste('iteration = ',iter))
+  print(w_new)
+  cat("\n")
+  iter=iter+1
+    
+  w_old<-w_new
+  
+  if(s_diff<0.001){break}
+}
+```
+
+```{r}
+s
+max(eigen(mat)$values)
+```
+#largest eigenvalue from the Power method and true eigenvalue(from ftn eigen()) are almost same
+
+```{r}
+w_old
+vnorm(w_old)
+```
+#eigenvector from the Power method was not scaled. Its norm was 1.12.
+
+```{r}
+norm_w_old<-unit_norm(w_old)
+norm_w_old
+eigen(mat)$vectors[,1]
+```
+#After normalization(by the ftn unit_norm()), we got the norm_w_old.
+#norm_w_old is almost same as (-1)*eigenvector corresponding to eigenvalue 12.
+
+```{r}
+ray<-(t(w_old)%*%mat%*%w_old)/t(w_old)%*%w_old
+ray
+```
+#By Rayleigh quotient, we got the almost same value to the largest eigenvalue, which is 12.
+
+```{r}
+vnorm(w_old)
+```
+#It was close to 1, but not 1.
+
+##6B##
+
+```{r}
+iter2=1
+mat<-matrix(c(5,-4,3,-14,4,6,11,-4,-3),3,3)
+w_old2<-c(1,1,1)
+s2=vnorm(mat%*%w_old2)
+
+while(TRUE){
+  w_new2<-(mat%*%w_old2)/s2
+  s_diff2=abs(vnorm(mat%*%w_new2)-s2)
+  s2=vnorm(mat%*%w_new2)
+    
+  print(paste('iteration = ',iter2))
+  print(w_new2)
+  cat("\n")
+  iter2=iter2+1
+    
+  w_old2<-w_new2
+  
+  if(s_diff2<0.001){break}
+}
+```
+#I used L2-norm instead of L-infinite norm.
+#To calculate L2-norm, I used ftn vnorm().
+
+```{r}
+s2
+eigen(mat)$values[1]
+```
+#It is also close to the dominant eigenvalue, 12.
+
+```{r}
+w_old2
+eigen(mat)$vectors[,1]
+```
+#I could find that true eigenvector correspoing to eigenvalue 12 and eigenvector through Power test were almost same.
+
+##6C##
+```{r}
+B<-cbind(c(5,1),c(1,5))
+B
+```
+
+```{r}
+iter3=1
+w_old3<-c(1,1)
+s3=abs(max(B%*%w_old3))
+
+while(TRUE){
+  w_new3<-(B%*%w_old3)/s3
+  s_diff3=abs(abs(max(B%*%w_new3))-s3)
+  s3=abs(max(B%*%w_new3))
+    
+  print(paste('iteration = ',iter3))
+  print(w_new3)
+  cat("\n")
+  iter3=iter3+1
+    
+  w_old3<-w_new3
+  
+  if(s_diff3<0.001){break}
+}
+```
+
+```{r}
+s3
+eigen(B)$values[1]
+```
+#Dominant eigenvalue from Power Method and true dominant eigenvalue are same.
+
+```{r}
+unit_norm(w_new3)
+eigen(B)$vectors[,1]
+```
+#eigenvector is same
+
+```{r}
+B1<-B-s3*unit_norm(w_old3)%*%t(unit_norm(w_old3))
+B1
+```
+
+```{r}
+iter4=1
+w_old4<-c(2,1)
+s4=abs(max(B1%*%w_old4))
+
+while(TRUE){
+  w_new4<-(B1%*%w_old4)/s4
+  s_diff4=abs(abs(max(B1%*%w_new4))-s4)
+  s4=abs(max(B1%*%w_new4))
+    
+  print(paste('iteration = ',iter4))
+  print(w_new4)
+  cat("\n")
+  iter4=iter4+1
+    
+  w_old4<-w_new4
+  
+  if(s_diff4<0.001){break}
+}
+```
+
+```{r}
+s4
+eigen(B1)$values[1]
+```
+#Dominant eigenvalue from Power Method and true dominant eigenvalue are same.
+
+```{r}
+unit_norm(w_new4)
+eigen(B1)$vectors[,1]
+```
+#same eigenvectors
+
+```{r}
+eigen(B)$values
+s3
+s4
+```
+#We get eigenvalues of B through power method with B and B1
+
+```{r}
+eigen(B1)$vectors[,1]
+unit_norm(w_new3)
+unit_norm(w_new4)
+```
+#We also get eigenvectors of B through power method with B and B1

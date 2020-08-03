@@ -1,0 +1,110 @@
+---
+title: "STAT154 HW7"
+author: "Minju Jo"
+output: pdf_document
+---
+
+PROBLEM 4
+#a#
+```{r}
+knn<-function(k,z,x,y){
+  e_dis=function(a,b){return(sqrt(sum((a-b)^2)))} #euclidian distance
+  ed=rep(0,length(x))
+  df=data.frame(x,y,ed)
+  
+  for (i in 1:length(x)){df$ed[i]=e_dis(z,x[i])}
+  kdf=df[order(df$ed)[1:k],]
+  return(kdf)
+}
+```
+
+
+#b#
+```{r}
+pred_n1=c()
+pred_0=c()
+pred_1=c()
+```
+
+```{r}
+for(i in 1:100){
+  x=runif(30,-2,2)
+  y=x^3-3*x+rnorm(30)
+  pred_n1=c(pred_n1,mean(knn(4,-1,x,y)$y))
+  pred_0=c(pred_0,mean(knn(4,0,x,y)$y))
+  pred_1=c(pred_1,mean(knn(4,1,x,y)$y))
+}
+```
+
+```{r}
+var(pred_n1)
+var(pred_0)
+var(pred_1)
+```
+#variance of -1, 0, 1
+
+```{r}
+yn1=(-1)^3-3*(-1)
+y0=0
+y1=1^3-3*1
+```
+
+```{r}
+(mean(pred_n1)-yn1)^2
+(mean(pred_0)-y0)^2
+(mean(pred_1)-y1)^2
+```
+#0 has particularly low bias
+
+
+#c#
+```{r}
+pred_n1=c()
+pred_0=c()
+pred_1=c()
+
+for(i in 1:100){
+  x=runif(30,-2,2)
+  y=x^3-3*x+rnorm(30)
+  pred_n1=c(pred_n1,mean(knn(1,-1,x,y)$y))
+  pred_0=c(pred_0,mean(knn(1,0,x,y)$y))
+  pred_1=c(pred_1,mean(knn(1,1,x,y)$y))
+}
+```
+
+```{r}
+var(pred_n1)
+var(pred_0)
+var(pred_1)
+
+(mean(pred_n1)-yn1)^2
+(mean(pred_0)-y0)^2
+(mean(pred_1)-y1)^2
+```
+
+```{r}
+pred_n1=c()
+pred_0=c()
+pred_1=c()
+
+for(i in 1:100){
+  x=runif(30,-2,2)
+  y=x^3-3*x+rnorm(30)
+  pred_n1=c(pred_n1,mean(knn(10,-1,x,y)$y))
+  pred_0=c(pred_0,mean(knn(10,0,x,y)$y))
+  pred_1=c(pred_1,mean(knn(10,1,x,y)$y))
+}
+```
+
+```{r}
+var(pred_n1)
+var(pred_0)
+var(pred_1)
+
+(mean(pred_n1)-yn1)^2
+(mean(pred_0)-y0)^2
+(mean(pred_1)-y1)^2
+```
+#low k -> high variance & low bias
+#high k -> low variance & high bias
+

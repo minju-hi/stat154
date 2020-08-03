@@ -1,0 +1,92 @@
+---
+title: "STAT154_HW4"
+author: "Minju Jo"
+output: pdf_document
+---
+###PROBLEM 5###
+
+```{r}
+adv<-read.csv("C:/Users/MINJU/Desktop/advertising.csv")
+head(adv)
+```
+
+##5A##
+
+```{r}
+y=adv$sales #response
+X=as.matrix(adv[,2:4]) #predictor
+```
+
+```{r}
+x1=X[,1]
+x2=X[,2]
+x3=X[,3]
+```
+
+```{r}
+get_gamma <- function(z,x){
+  return(sum(z*x)/sum(z*z))
+}
+
+get_beta<-function(z,y){
+  sum(z*y)/sum(z*z)
+}
+```
+
+
+```{r}
+z0=rep(1,nrow(X))
+g10=get_gamma(z0,x1)
+z1=x1-z0*g10
+b1<-get_beta(z1,y)
+b1
+```
+#b1 for TV
+
+```{r}
+g20=get_gamma(z0,x2)
+g21=get_gamma(z1,x2)
+z2=x2-z0*g20-z1*g21
+b2<-get_beta(z2,y)
+b2
+```
+#b2 for radio
+
+```{r}
+g30=get_gamma(z0,x3)
+g31=get_gamma(z1,x3)
+g32=get_gamma(z2,x3)
+z3=x3-z0*g30-z1*g31-z2*g32
+b3<-get_beta(z3,y)
+b3
+```
+#b3 for newspaper
+
+```{r}
+beta<-c(b1,b2,b3)
+beta
+```
+#estimated value of beta3 for newspaper : -0.001037493
+
+
+##5B##
+#same for b1
+```{r}
+g20=get_gamma(z0,x3)
+g21=get_gamma(z1,x3)
+z2=x3-z0*g20-z1*g21
+b2<-get_beta(z2,y)
+b2
+```
+#new beta2 for newspaper
+
+```{r}
+g30=get_gamma(z0,x2)
+g31=get_gamma(z1,x2)
+g32=get_gamma(z2,x2)
+z3=x2-z0*g30-z1*g31-z2*g32
+b3<-get_beta(z3,y)
+b3
+```
+#new beta3 for radio(estimated value of beta3 for radio)
+
